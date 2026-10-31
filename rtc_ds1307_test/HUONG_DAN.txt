@@ -1,0 +1,21 @@
+CHUONG TRINH CHAN DOAN DS1307 RIENG
+
+1. Mo rtc_ds1307_test.ino trong chinh thu muc rtc_ds1307_test.
+2. Ngat USB tren web va dong Serial Monitor cua sketch khac.
+3. Chon Arduino Nano va dung cong COM, roi Upload.
+4. Mo Serial Monitor: 9600 baud, Newline hoac Both NL & CR.
+
+No tu scan I2C khi khoi dong va doc RTC moi 5 giay.
+Gui I2C de scan lai, RTC de doc ngay, HELP de xem lenh.
+Gui ngay gio thuc te theo YYYY-MM-DD HH:MM:SS neu muon dat dong ho.
+Chuong trinh KHONG tu dat gio va KHONG ghi EEPROM.
+
+DS1307: VCC -> 5V, GND -> GND, SDA -> A4, SCL -> A5 tren Nano.
+Pin cuc ao la nguon du phong, khong thay cho VCC cua giao tiep I2C.
+0x68 la dia chi RTC; 0x27/0x3F thuong la LCD.
+
+Day la sketch test, KHONG chay do muc nuoc, den/coi hay gui SMS.
+Test xong can nap lai D:/iot/sketch_oct30a/sketch_oct30a.ino de chay he thong chinh.
+
+Da bien dich cho arduino:avr:nano: flash 8562 byte (27%), RAM 487 byte (23%).
+Chua nap va kiem tra tren module DS1307 thuc te.

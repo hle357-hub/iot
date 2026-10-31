@@ -1,0 +1,758 @@
+#include <Arduino.h>
+#line 1 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <EEPROM.h>
+#include <RTClib.h>
+#include <SoftwareSerial.h>
+#include <avr/pgmspace.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
+const byte TRIGGER_PIN = 2, ECHO_PIN = 3, LED_PIN = 6, SIREN_PIN = 9;
+const byte MAX_LEVELS = 6;
+struct __attribute__((packed)) AlertLevel { uint16_t distanceCenti; char name[24]; };
+struct __attribute__((packed)) ControlConfig {
+  uint32_t intervalMs;
+  uint16_t hysteresisCenti;
+  byte count, smsEnabled;
+  char phone[17];
+  char message[121];
+  AlertLevel levels[MAX_LEVELS];
+  uint32_t reportIntervalMs;
+  uint16_t sensorHeightCenti; // 0 = not calibrated; otherwise distance to datum.
+};
+ControlConfig config;
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+SoftwareSerial simSerial(11, 10); // Nano RX <- SIM TXD; Nano TX -> SIM RXD.
+
+// Two independently validated EEPROM banks. The previous committed bank survives
+// an interrupted edit or a power loss before the final valid marker is written.
+const int BANK_START = 64, SECOND_BANK = 704, CONFIG_OFFSET = 10, BANK_SIZE = CONFIG_OFFSET + sizeof(ControlConfig);
+const int LEGACY_SIZE = 302, LEGACY_BANK_SIZE = 312;
+static_assert(sizeof(ControlConfig) == 308, "Configuration layout changed: review migration");
+static_assert(SECOND_BANK + BANK_SIZE <= 1024, "EEPROM configuration does not fit Nano");
+byte activeBank = 0, stageBank = 1;
+uint32_t activeSequence = 0;
+bool editing = false, paused = false, rtcReady = false;
+unsigned long editAt = 0, lastSampleAt = 0, lastBlinkAt = 0;
+unsigned long lastReportAt = 0, lastHealthAt = 0, pauseStarted = 0, pauseForMs = 0;
+unsigned long validSampleAt = 0, lastModemAt = 0, healthPollAt = 0;
+unsigned long lastRtcCheckAt = 0;
+// Raw checked I2C reads avoid accepting an uninitialised/partial RTC response.
+const byte RTC_UNKNOWN = 0, RTC_OK = 1, RTC_NOT_FOUND = 2, RTC_READ_ERROR = 3,
+           RTC_STOPPED = 4, RTC_INVALID = 5;
+byte rtcState = RTC_UNKNOWN;
+uint32_t lastSampleEpoch = 0;
+float latestDistance = 0;
+bool hasValidSample = false, unpublished = false, modemSeen = false, smsPending = false;
+byte sensorState = 0, simCardState = 0, signalRssi = 99;
+int8_t regCs = -1, regLte = -1;
+float samples[5], averageDistance = 0;
+float minDistance = 1000, maxDistance = 0;
+unsigned long extremaSavedAt = 0;
+byte sampleIndex = 0, sampleCount = 0, alertLevel = 0;
+bool ledOn = false;
+char serialLine[160];
+byte serialLength = 0;
+bool serialOverflow = false;
+
+// SMS runs as a state machine so measurement scheduling and USB commands remain
+// available while waiting for the modem or mobile network.
+char smsText[161], smsPhone[17], modemLine[48];
+byte smsState = 0, modemLength = 0;
+bool smsReference = false;
+unsigned long smsAt = 0;
+
+#line 67 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+bool rtcBcd(byte raw, byte maximum, byte &value);
+#line 72 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+byte rtcRead(DateTime &now);
+#line 96 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void rtcReport();
+#line 105 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+bool rtcCheck(DateTime &now, bool report);
+#line 120 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void serviceRTC();
+#line 125 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void scanI2C();
+#line 143 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+bool rtcSet(const DateTime &value);
+#line 161 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+int bankAddress(byte bank);
+#line 162 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+uint16_t crcBytes(const void *value, uint16_t length);
+#line 171 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+uint16_t crcConfig(const ControlConfig &value);
+#line 172 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+bool validPhone(const char *phone);
+#line 181 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+bool validMessage(const char *message);
+#line 196 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+bool validConfig(const ControlConfig &value);
+#line 213 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+bool validBank(byte bank);
+#line 223 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+bool validLegacyBank(byte bank);
+#line 233 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void defaultConfig();
+#line 247 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void loadConfig();
+#line 274 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+int32_t pauseRemaining();
+#line 280 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void resumeSampling();
+#line 286 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void printPauseState(uint16_t id);
+#line 291 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void ack(uint16_t id, bool ok, const __FlashStringHelper *detail);
+#line 296 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void configPrefix(uint16_t id, const __FlashStringHelper *key);
+#line 299 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void printConfig(uint16_t id);
+#line 317 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+bool unsignedValue(const char *text, uint32_t &value);
+#line 326 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void beginEdit();
+#line 334 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void processCommand(char *line);
+#line 422 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void processTime(char *line);
+#line 449 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void readCommands();
+#line 462 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void handleSignals();
+#line 470 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void printTime(DateTime now);
+#line 476 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+bool appendText(const char *text, byte &length);
+#line 480 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+bool buildMessage(float distance, DateTime now);
+#line 497 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void beginSmsTransmission();
+#line 502 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void startSMS(float distance, DateTime now);
+#line 510 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void sendHealthQuery(byte state);
+#line 518 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void finishHealthQuery();
+#line 523 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void readModemStatus();
+#line 539 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void serviceSMS();
+#line 575 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void emitHealth();
+#line 593 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void emitSample();
+#line 600 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void takeSample();
+#line 638 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void setup();
+#line 659 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+void loop();
+#line 67 "D:\\iot\\sketch_oct30a\\sketch_oct30a.ino"
+bool rtcBcd(byte raw, byte maximum, byte &value) {
+  if ((raw & 0x0f) > 9 || (raw >> 4) > 9) return false;
+  value = (raw >> 4) * 10 + (raw & 0x0f);
+  return value <= maximum;
+}
+byte rtcRead(DateTime &now) {
+  Wire.clearWireTimeoutFlag();
+  Wire.beginTransmission((byte)0x68); Wire.write((byte)0);
+  byte result = Wire.endTransmission();
+  if (result) return result == 2 ? RTC_NOT_FOUND : RTC_READ_ERROR;
+  if (Wire.requestFrom((byte)0x68, (byte)7) != 7 || Wire.getWireTimeoutFlag()) {
+    while (Wire.available()) Wire.read();
+    return RTC_READ_ERROR;
+  }
+  byte raw[7];
+  for (byte i = 0; i < 7; i++) raw[i] = Wire.read();
+  if (raw[0] & 0x80) return RTC_STOPPED;
+  byte second, minute, hour, day, month, year;
+  if ((raw[2] & 0x80) || !rtcBcd(raw[0], 59, second) ||
+      !rtcBcd(raw[1], 59, minute) || !rtcBcd(raw[4], 31, day) || !day ||
+      !rtcBcd(raw[5], 12, month) || !month || !rtcBcd(raw[6], 99, year)) return RTC_INVALID;
+  if (raw[2] & 0x40) {
+    if (!rtcBcd(raw[2] & 0x1f, 12, hour) || !hour) return RTC_INVALID;
+    hour = hour % 12 + ((raw[2] & 0x20) ? 12 : 0);
+  } else if (!rtcBcd(raw[2], 23, hour)) return RTC_INVALID;
+  DateTime candidate(2000U + year, month, day, hour, minute, second);
+  if (!candidate.isValid()) return RTC_INVALID;
+  now = candidate; return RTC_OK;
+}
+void rtcReport() {
+  if (rtcReady) { Serial.println(F("@RTC OK DS1307: da doc duoc ngay gio hop le.")); return; }
+  Serial.print(F("@RTC ERROR "));
+  if (rtcState == RTC_NOT_FOUND) Serial.println(F("NOT_FOUND: khong nhan DS1307 tai 0x68. Kiem tra nguon, GND, SDA=A4, SCL=A5."));
+  else if (rtcState == RTC_STOPPED) Serial.println(F("STOPPED: dong ho dang dung. Nhap YYYY-MM-DD HH:MM:SS de dat gio."));
+  else if (rtcState == RTC_INVALID) Serial.println(F("INVALID: ngay gio khong hop le. Nhap YYYY-MM-DD HH:MM:SS de dat gio."));
+  else Serial.println(F("I2C_READ: doc thieu byte/loi bus. Kiem tra day va nguon RTC."));
+  Serial.println(F("@RTC Tam dung lay mau; giu canh bao cuoi. Tu thu lai sau 5 giay. Go I2C de chan doan."));
+}
+bool rtcCheck(DateTime &now, bool report) {
+  lastRtcCheckAt = millis();
+  byte previous = rtcState; rtcState = rtcRead(now); rtcReady = rtcState == RTC_OK;
+  if (previous != rtcState) {
+    // Never mix measurements from before and after a clock outage.
+    sampleCount = sampleIndex = 0; unpublished = false;
+    if (rtcReady) {
+      sensorState = 0;
+      lastSampleAt = millis() - config.intervalMs;
+      lastReportAt = millis() - config.reportIntervalMs;
+    }
+  }
+  if (report || previous != rtcState) rtcReport();
+  return rtcReady;
+}
+void serviceRTC() {
+  if (millis() - lastRtcCheckAt < 5000UL) return;
+  DateTime now(2000, 1, 1);
+  rtcCheck(now, !rtcReady);
+}
+void scanI2C() {
+  if (smsState || smsPending) { Serial.println(F("@I2C BUSY: cho SIM xu ly xong roi go I2C lai.")); return; }
+  byte count = 0; bool foundRTC = false;
+  Serial.println(F("@I2C BEGIN"));
+  Wire.clearWireTimeoutFlag();
+  for (byte address = 8; address < 120; address++) {
+    Wire.beginTransmission(address);
+    byte result = Wire.endTransmission();
+    if (Wire.getWireTimeoutFlag()) { Serial.println(F("@I2C TIMEOUT: bus bi ket. Kiem tra SDA/SCL va nguon.")); break; }
+    if (!result) {
+      count++; if (address == 0x68) foundRTC = true;
+      Serial.print(F("@I2C FOUND 0x")); if (address < 16) Serial.print('0'); Serial.println(address, HEX);
+    }
+  }
+  Serial.print(F("@I2C END DEVICES ")); Serial.println(count);
+  if (!foundRTC) Serial.println(F("@I2C Khong thay 0x68: chua nhan DS1307. 0x27 neu co la LCD, khong phai RTC."));
+  DateTime now(2000, 1, 1); rtcCheck(now, true);
+}
+bool rtcSet(const DateTime &value) {
+  Wire.beginTransmission((byte)0x68); Wire.write((byte)0);
+  const byte fields[7] = { value.second(), value.minute(), value.hour(),
+    (byte)(value.dayOfTheWeek() + 1), value.day(), value.month(), (byte)(value.year() - 2000) };
+  for (byte i = 0; i < 7; i++) Wire.write((byte)((fields[i] / 10) * 16 + fields[i] % 10));
+  if (Wire.endTransmission()) {
+    DateTime now(2000, 1, 1); rtcCheck(now, true); return false;
+  }
+  DateTime checked(2000, 1, 1);
+  if (!rtcCheck(checked, true)) return false;
+  uint32_t expected = value.unixtime(), actual = checked.unixtime();
+  if (actual < expected || actual - expected > 2) {
+    rtcState = RTC_INVALID; rtcReady = false; unpublished = false;
+    sampleCount = sampleIndex = 0; rtcReport(); return false;
+  }
+  return true;
+}
+
+int bankAddress(byte bank) { return bank ? SECOND_BANK : BANK_START; }
+uint16_t crcBytes(const void *value, uint16_t length) {
+  uint16_t crc = 0xffff;
+  const byte *bytes = reinterpret_cast<const byte *>(value);
+  for (uint16_t i = 0; i < length; i++) {
+    crc ^= bytes[i];
+    for (byte bit = 0; bit < 8; bit++) crc = (crc >> 1) ^ ((crc & 1) ? 0xa001 : 0);
+  }
+  return crc;
+}
+uint16_t crcConfig(const ControlConfig &value) { return crcBytes(&value, sizeof(value)); }
+bool validPhone(const char *phone) {
+  size_t length = strnlen(phone, 17);
+  if (length == 0) return true;
+  if (length >= 17) return false;
+  byte first = phone[0] == '+' ? 1 : 0;
+  if (length - first < 8 || length - first > 15) return false;
+  for (byte i = first; i < length; i++) if (phone[i] < '0' || phone[i] > '9') return false;
+  return true;
+}
+bool validMessage(const char *message) {
+  size_t length = strnlen(message, 121);
+  if (!length || length > 120) return false;
+  uint16_t expanded = 0;
+  const char *p = message;
+  while (*p) {
+    if (*p < 32 || *p > 126) return false;
+    if (!strncmp_P(p, PSTR("{cap}"), 5)) { expanded++; p += 5; }
+    else if (!strncmp_P(p, PSTR("{kc}"), 4)) { expanded += 6; p += 4; }
+    else if (!strncmp_P(p, PSTR("{tb}"), 4)) { expanded += 6; p += 4; }
+    else if (!strncmp_P(p, PSTR("{thoigian}"), 10)) { expanded += 19; p += 10; }
+    else { if (*p == '{' || *p == '}') return false; expanded++; p++; }
+  }
+  return expanded <= 160;
+}
+bool validConfig(const ControlConfig &value) {
+  if (value.intervalMs < 100 || value.intervalMs > 3600000UL ||
+      value.reportIntervalMs < value.intervalMs || value.reportIntervalMs > 3600000UL || value.sensorHeightCenti > 60000 ||
+      value.count < 1 || value.count > MAX_LEVELS || value.smsEnabled > 1 ||
+      value.hysteresisCenti > 10000 || !validPhone(value.phone) ||
+      (value.smsEnabled && !value.phone[0])) return false;
+  if (!validMessage(value.message)) return false;
+  for (byte i = 0; i < value.count; i++) {
+    const AlertLevel &level = value.levels[i];
+    if (level.distanceCenti < 10 || level.distanceCenti > 50000 ||
+        (i && level.distanceCenti >= value.levels[i - 1].distanceCenti)) return false;
+    size_t length = strnlen(level.name, sizeof(level.name));
+    if (!length || length >= sizeof(level.name)) return false;
+    for (byte j = 0; j < length; j++) if (static_cast<byte>(level.name[j]) < 32 || level.name[j] == '|') return false;
+  }
+  return true;
+}
+bool validBank(byte bank) {
+  int base = bankAddress(bank);
+  uint16_t magic, expected;
+  EEPROM.get(base, magic);
+  if (magic != 0x5754 || EEPROM.read(base + 2) != 2 || EEPROM.read(base + 3) != 0xa5) return false;
+  ControlConfig candidate;
+  EEPROM.get(base + CONFIG_OFFSET, candidate);
+  EEPROM.get(base + 8, expected);
+  return expected == crcConfig(candidate) && validConfig(candidate);
+}
+bool validLegacyBank(byte bank) {
+  int base = BANK_START + bank * LEGACY_BANK_SIZE;
+  uint16_t magic, expected; EEPROM.get(base, magic); EEPROM.get(base + 8, expected);
+  if (magic != 0x5754 || EEPROM.read(base + 2) != 1 || EEPROM.read(base + 3) != 0xa5) return false;
+  ControlConfig candidate;
+  byte *bytes = reinterpret_cast<byte *>(&candidate);
+  for (int i = 0; i < LEGACY_SIZE; i++) bytes[i] = EEPROM.read(base + CONFIG_OFFSET + i);
+  candidate.reportIntervalMs = candidate.intervalMs; candidate.sensorHeightCenti = 0;
+  return expected == crcBytes(&candidate, LEGACY_SIZE) && validConfig(candidate);
+}
+void defaultConfig() {
+  memset(&config, 0, sizeof(config));
+  config.intervalMs = 1000;
+  config.reportIntervalMs = 1000;
+  config.hysteresisCenti = 500;
+  config.count = 3;
+  config.levels[0].distanceCenti = 3000;
+  config.levels[1].distanceCenti = 2000;
+  config.levels[2].distanceCenti = 1000;
+  strcpy_P(config.levels[0].name, PSTR("Canh giac"));
+  strcpy_P(config.levels[1].name, PSTR("Nguy hiem"));
+  strcpy_P(config.levels[2].name, PSTR("Rat nguy hiem"));
+  strcpy_P(config.message, PSTR("CANH BAO LU cap {cap}. Khoang cach {kc} cm, trung binh {tb} cm luc {thoigian}."));
+}
+void loadConfig() {
+  bool first = validBank(0), second = validBank(1);
+  if (!first && !second) {
+    bool oldFirst = validLegacyBank(0), oldSecond = validLegacyBank(1);
+    defaultConfig();
+    if (oldFirst || oldSecond) {
+      uint32_t a = 0, b = 0;
+      if (oldFirst) EEPROM.get(BANK_START + 4, a);
+      if (oldSecond) EEPROM.get(BANK_START + LEGACY_BANK_SIZE + 4, b);
+      byte bank = oldSecond && (!oldFirst || static_cast<int32_t>(b - a) > 0) ? 1 : 0;
+      int base = BANK_START + bank * LEGACY_BANK_SIZE;
+      byte *bytes = reinterpret_cast<byte *>(&config);
+      for (int i = 0; i < LEGACY_SIZE; i++) bytes[i] = EEPROM.read(base + CONFIG_OFFSET + i);
+      config.reportIntervalMs = config.intervalMs; config.sensorHeightCenti = 0;
+      activeSequence = bank ? b : a;
+      // The first v2 write goes to 704, disjoint from both legacy banks.
+      activeBank = 0;
+    }
+    return;
+  }
+  uint32_t a = 0, b = 0;
+  if (first) EEPROM.get(bankAddress(0) + 4, a);
+  if (second) EEPROM.get(bankAddress(1) + 4, b);
+  activeBank = second && (!first || static_cast<int32_t>(b - a) > 0) ? 1 : 0;
+  activeSequence = activeBank ? b : a;
+  EEPROM.get(bankAddress(activeBank) + CONFIG_OFFSET, config);
+}
+int32_t pauseRemaining() {
+  if (!paused) return 0;
+  if (!pauseForMs) return -1;
+  unsigned long elapsed = millis() - pauseStarted;
+  return elapsed >= pauseForMs ? 0 : pauseForMs - elapsed;
+}
+void resumeSampling() {
+  paused = false; pauseForMs = 0;
+  sampleCount = sampleIndex = 0; unpublished = false;
+  lastSampleAt = millis() - config.intervalMs;
+  lastReportAt = millis() - config.reportIntervalMs;
+}
+void printPauseState(uint16_t id) {
+  if (id) { Serial.print(F("@ACK ")); Serial.print(id); Serial.print(F(" OK PAUSED ")); }
+  else Serial.print(F("@STATE PAUSED "));
+  Serial.print(paused ? 1 : 0); Serial.print(F(" REMAIN ")); Serial.println(pauseRemaining());
+}
+void ack(uint16_t id, bool ok, const __FlashStringHelper *detail) {
+  Serial.print(F("@ACK ")); Serial.print(id); Serial.print(ok ? F(" OK") : F(" ERR"));
+  if (detail) { Serial.print(' '); Serial.print(detail); }
+  Serial.println();
+}
+void configPrefix(uint16_t id, const __FlashStringHelper *key) {
+  Serial.print(F("@CONFIG ")); Serial.print(id); Serial.print(' '); Serial.print(key);
+}
+void printConfig(uint16_t id) {
+  configPrefix(id, F("BEGIN")); Serial.println();
+  configPrefix(id, F("INTERVAL ")); Serial.println(config.intervalMs);
+  configPrefix(id, F("REPORT ")); Serial.println(config.reportIntervalMs);
+  configPrefix(id, F("HEIGHT ")); Serial.println(config.sensorHeightCenti);
+  configPrefix(id, F("HYSTERESIS ")); Serial.println(config.hysteresisCenti);
+  configPrefix(id, F("SMS ")); Serial.println(config.smsEnabled);
+  configPrefix(id, F("PHONE ")); if (config.phone[0]) Serial.println(config.phone); else Serial.println('-');
+  configPrefix(id, F("MESSAGE ")); Serial.println(config.message);
+  configPrefix(id, F("PAUSED ")); Serial.println(paused ? 1 : 0);
+  configPrefix(id, F("PAUSELEFT ")); Serial.println(pauseRemaining());
+  configPrefix(id, F("LEVELS ")); Serial.println(config.count);
+  for (byte i = 0; i < config.count; i++) {
+    configPrefix(id, F("LEVEL ")); Serial.print(i + 1); Serial.print(' ');
+    Serial.print(config.levels[i].distanceCenti); Serial.print(' '); Serial.println(config.levels[i].name);
+  }
+  configPrefix(id, F("END")); Serial.println();
+}
+bool unsignedValue(const char *text, uint32_t &value) {
+  if (!text || !*text) return false;
+  value = 0;
+  while (*text) {
+    if (*text < '0' || *text > '9' || value > (0xffffffffUL - (*text - '0')) / 10UL) return false;
+    value = value * 10 + (*text++ - '0');
+  }
+  return true;
+}
+void beginEdit() {
+  stageBank = 1 - activeBank;
+  int base = bankAddress(stageBank);
+  EEPROM.update(base + 3, 0);
+  EEPROM.put(base + CONFIG_OFFSET, config);
+  editing = true;
+  editAt = millis();
+}
+void processCommand(char *line) {
+  char *cursor = line + 1, *end;
+  unsigned long rawId = strtoul(cursor, &end, 10);
+  if (end == cursor || *end != ' ' || rawId == 0 || rawId > 65535) return;
+  uint16_t id = rawId;
+  char *command = end + 1;
+  char *argument = strchr(command, ' ');
+  if (argument) *argument++ = '\0';
+  if (!strcmp_P(command, PSTR("HELLO"))) { ack(id, true, F("HELLO 2")); return; }
+  if (!strcmp_P(command, PSTR("GET"))) { printConfig(id); ack(id, true, nullptr); return; }
+  if (!strcmp_P(command, PSTR("PAUSE"))) {
+    uint32_t duration = 0;
+    if (argument && (!unsignedValue(argument, duration) || duration > 86400000UL)) { ack(id, false, F("INVALID_DURATION")); return; }
+    paused = true; pauseForMs = duration; pauseStarted = millis();
+    lcd.setCursor(0, 0); lcd.print(F("Tam dung do     ")); printPauseState(id); return;
+  }
+  if (!strcmp_P(command, PSTR("RESUME"))) {
+    resumeSampling(); printPauseState(id); return;
+  }
+  if (!strcmp_P(command, PSTR("ABORT"))) { editing = false; ack(id, true, nullptr); return; }
+  if (!strcmp_P(command, PSTR("BEGIN"))) {
+    if (editing) { ack(id, false, F("BUSY")); return; }
+    beginEdit(); ack(id, true, nullptr); return;
+  }
+  if (!editing) { ack(id, false, F("BEGIN_REQUIRED")); return; }
+  editAt = millis();
+  int target = bankAddress(stageBank) + CONFIG_OFFSET;
+  uint32_t value = 0;
+  bool ok = false;
+  if (!strcmp_P(command, PSTR("INTERVAL")) && unsignedValue(argument, value) && value >= 100 && value <= 3600000UL) {
+    EEPROM.put(target + offsetof(ControlConfig, intervalMs), value); ok = true;
+  } else if (!strcmp_P(command, PSTR("REPORT")) && unsignedValue(argument, value) && value >= 100 && value <= 3600000UL) {
+    EEPROM.put(target + offsetof(ControlConfig, reportIntervalMs), value); ok = true;
+  } else if (!strcmp_P(command, PSTR("HEIGHT")) && unsignedValue(argument, value) && value <= 60000) {
+    uint16_t small = value; EEPROM.put(target + offsetof(ControlConfig, sensorHeightCenti), small); ok = true;
+  } else if (!strcmp_P(command, PSTR("HYSTERESIS")) && unsignedValue(argument, value) && value <= 10000) {
+    uint16_t small = value; EEPROM.put(target + offsetof(ControlConfig, hysteresisCenti), small); ok = true;
+  } else if (!strcmp_P(command, PSTR("SMS")) && argument && (argument[0] == '0' || argument[0] == '1') && !argument[1]) {
+    EEPROM.update(target + offsetof(ControlConfig, smsEnabled), argument[0] - '0'); ok = true;
+  } else if (!strcmp_P(command, PSTR("LEVELS")) && unsignedValue(argument, value) && value >= 1 && value <= MAX_LEVELS) {
+    EEPROM.update(target + offsetof(ControlConfig, count), value); ok = true;
+  } else if (!strcmp_P(command, PSTR("PHONE")) && argument) {
+    if (!strcmp(argument, "-")) *argument = '\0';
+    if (validPhone(argument)) {
+      for (byte i = 0; i <= strlen(argument); i++) EEPROM.update(target + offsetof(ControlConfig, phone) + i, argument[i]);
+      ok = true;
+    }
+  } else if (!strcmp_P(command, PSTR("MESSAGE")) && argument && strlen(argument) > 0 && strlen(argument) <= 120) {
+    ok = true;
+    for (byte i = 0; argument[i]; i++) if (argument[i] < 32 || argument[i] > 126) ok = false;
+    if (ok) for (byte i = 0; i <= strlen(argument); i++) EEPROM.update(target + offsetof(ControlConfig, message) + i, argument[i]);
+  } else if (!strcmp_P(command, PSTR("LEVEL")) && argument) {
+    char *distanceText = strchr(argument, ' ');
+    if (distanceText) {
+      *distanceText++ = '\0'; char *name = strchr(distanceText, ' ');
+      if (name) {
+        *name++ = '\0'; uint32_t index, distance;
+        if (unsignedValue(argument, index) && index >= 1 && index <= MAX_LEVELS &&
+            unsignedValue(distanceText, distance) && distance >= 10 && distance <= 50000 && strlen(name) > 0 && strlen(name) <= 23) {
+          ok = true;
+          for (byte j = 0; name[j]; j++) if (static_cast<byte>(name[j]) < 32 || name[j] == '|') ok = false;
+          if (ok) {
+            int offset = target + offsetof(ControlConfig, levels) + (index - 1) * sizeof(AlertLevel);
+            uint16_t small = distance; EEPROM.put(offset, small);
+            for (byte j = 0; j <= strlen(name); j++) EEPROM.update(offset + offsetof(AlertLevel, name) + j, name[j]);
+          }
+        }
+      }
+    }
+  } else if (!strcmp_P(command, PSTR("COMMIT"))) {
+    ControlConfig candidate;
+    EEPROM.get(target, candidate);
+    if (!validConfig(candidate)) { ack(id, false, F("INVALID_CONFIG")); return; }
+    int base = bankAddress(stageBank);
+    uint16_t magic = 0x5754, crc = crcConfig(candidate);
+    uint32_t sequence = activeSequence + 1;
+    EEPROM.put(base, magic); EEPROM.update(base + 2, 2);
+    EEPROM.put(base + 4, sequence); EEPROM.put(base + 8, crc);
+    EEPROM.update(base + 3, 0xa5); // Commit marker is written last.
+    config = candidate; activeBank = stageBank; activeSequence = sequence; editing = false;
+    sampleCount = sampleIndex = 0;
+    if (alertLevel > config.count) alertLevel = config.count;
+    lastSampleAt = millis() - config.intervalMs;
+    lastReportAt = millis() - config.reportIntervalMs; unpublished = false;
+    ack(id, true, nullptr); return;
+  }
+  ack(id, ok, ok ? nullptr : F("INVALID_VALUE"));
+}
+void processTime(char *line) {
+  if (!strcmp_P(line, PSTR("I2C")) || !strcmp_P(line, PSTR("i2c"))) { scanI2C(); return; }
+  if (!strcmp_P(line, PSTR("RTC")) || !strcmp_P(line, PSTR("rtc"))) {
+    DateTime now(2000, 1, 1);
+    if (rtcCheck(now, true)) { Serial.print(F("@RTC TIME ")); printTime(now); Serial.println(); }
+    return;
+  }
+  if (strlen(line) != 19) { Serial.println(F("Nhap RTC, I2C, YYYY-MM-DD HH:MM:SS hoac lenh tu web.")); return; }
+  uint16_t parts[6] = {0}; byte field = 0;
+  for (byte i = 0; i < 19; i++) {
+    if (i == 4 || i == 7 || i == 10 || i == 13 || i == 16) {
+      char expected = i < 10 ? '-' : (i == 10 ? ' ' : ':');
+      if (line[i] != expected) return;
+      field++;
+    } else {
+      if (line[i] < '0' || line[i] > '9') return;
+      parts[field] = parts[field] * 10 + line[i] - '0';
+    }
+  }
+  if (parts[0] < 2000 || parts[0] > 2099 || parts[1] < 1 || parts[1] > 12 ||
+      parts[2] < 1 || parts[2] > 31 || parts[3] > 23 || parts[4] > 59 || parts[5] > 59) return;
+  DateTime updated(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5]);
+  if (updated.isValid()) {
+    if (rtcSet(updated)) Serial.println(F("RTC da cap nhat va doc lai xac nhan."));
+    else Serial.println(F("RTC chua cap nhat duoc. Kiem tra I2C."));
+  }
+}
+void readCommands() {
+  while (Serial.available()) {
+    char c = Serial.read();
+    if (c == '\n' || c == '\r') {
+      if (serialLength && !serialOverflow) {
+        serialLine[serialLength] = '\0';
+        if (serialLine[0] == '!') processCommand(serialLine); else processTime(serialLine);
+      } else if (serialOverflow) Serial.println(F("@ERROR LINE_TOO_LONG"));
+      serialLength = 0; serialOverflow = false;
+    } else if (serialLength < sizeof(serialLine) - 1) serialLine[serialLength++] = c;
+    else serialOverflow = true;
+  }
+}
+void handleSignals() {
+  if (!alertLevel) { digitalWrite(LED_PIN, LOW); digitalWrite(SIREN_PIN, LOW); ledOn = false; return; }
+  unsigned long interval = alertLevel >= 3 ? 100 : 200;
+  if (millis() - lastBlinkAt >= interval) {
+    lastBlinkAt = millis(); ledOn = !ledOn;
+    digitalWrite(LED_PIN, ledOn); digitalWrite(SIREN_PIN, alertLevel >= 2 ? ledOn : LOW);
+  }
+}
+void printTime(DateTime now) {
+  if (now.hour() < 10) Serial.print('0'); Serial.print(now.hour()); Serial.print(':');
+  if (now.minute() < 10) Serial.print('0'); Serial.print(now.minute()); Serial.print(':');
+  if (now.second() < 10) Serial.print('0'); Serial.print(now.second()); Serial.print(' ');
+  Serial.print(now.day()); Serial.print('/'); Serial.print(now.month()); Serial.print('/'); Serial.print(now.year());
+}
+bool appendText(const char *text, byte &length) {
+  while (*text) { if (length >= 160) return false; smsText[length++] = *text++; }
+  smsText[length] = '\0'; return true;
+}
+bool buildMessage(float distance, DateTime now) {
+  byte length = 0;
+  const char *p = config.message;
+  char value[24]; smsText[0] = '\0';
+  while (*p) {
+    if (!strncmp_P(p, PSTR("{cap}"), 5)) { utoa(alertLevel, value, 10); p += 5; }
+    else if (!strncmp_P(p, PSTR("{kc}"), 4)) { dtostrf(distance, 1, 2, value); p += 4; }
+    else if (!strncmp_P(p, PSTR("{tb}"), 4)) { dtostrf(averageDistance, 1, 2, value); p += 4; }
+    else if (!strncmp_P(p, PSTR("{thoigian}"), 10)) {
+      snprintf_P(value, sizeof(value), PSTR("%02u:%02u:%02u %02u/%02u/%u"),
+        (unsigned)now.hour(), (unsigned)now.minute(), (unsigned)now.second(),
+        (unsigned)now.day(), (unsigned)now.month(), (unsigned)now.year()); p += 10;
+    } else { value[0] = *p++; value[1] = '\0'; }
+    if (!appendText(value, length)) return false;
+  }
+  return true;
+}
+void beginSmsTransmission() {
+  while (simSerial.available()) simSerial.read();
+  modemLength = 0; smsReference = false; smsState = 1; smsAt = millis(); smsPending = false;
+  simSerial.print(F("AT+CMGF=1\r")); Serial.println(F("@SMS SENDING"));
+}
+void startSMS(float distance, DateTime now) {
+  if (!config.smsEnabled || !config.phone[0] || editing) return;
+  if ((smsState > 0 && smsState < 4) || smsPending) { Serial.println(F("@SMS ERROR MODEM_BUSY")); return; }
+  if (!buildMessage(distance, now)) { Serial.println(F("@SMS ERROR MESSAGE_TOO_LONG")); return; }
+  strcpy(smsPhone, config.phone);
+  if (smsState >= 4) smsPending = true; // Wait for the in-flight status query, not a retry.
+  else beginSmsTransmission();
+}
+void sendHealthQuery(byte state) {
+  smsState = state; smsAt = millis(); modemLength = 0;
+  if (state == 4) { simCardState = 0; signalRssi = 99; regCs = regLte = -1; }
+  if (state == 4) simSerial.print(F("AT+CPIN?\r"));
+  else if (state == 5) simSerial.print(F("AT+CSQ\r"));
+  else if (state == 6) simSerial.print(F("AT+CREG?\r"));
+  else simSerial.print(F("AT+CEREG?\r"));
+}
+void finishHealthQuery() {
+  if (smsPending) { beginSmsTransmission(); return; }
+  if (smsState < 7) sendHealthQuery(smsState + 1);
+  else smsState = 0;
+}
+void readModemStatus() {
+  if (!strncmp_P(modemLine, PSTR("+CPIN:"), 6)) {
+    if (strstr_P(modemLine, PSTR("READY"))) simCardState = 1;
+    else if (strstr_P(modemLine, PSTR("SIM PIN"))) simCardState = 2;
+    else if (strstr_P(modemLine, PSTR("SIM PUK"))) simCardState = 3;
+    else simCardState = 0;
+  } else if (!strncmp_P(modemLine, PSTR("+CSQ:"), 5)) {
+    int value = atoi(modemLine + 5); signalRssi = value >= 0 && value <= 31 ? value : 99;
+  } else if (!strncmp_P(modemLine, PSTR("+CREG:"), 6) || !strncmp_P(modemLine, PSTR("+CEREG:"), 7)) {
+    bool lte = modemLine[3] == 'R';
+    char *value = strchr(modemLine, ',');
+    if (!value) value = strchr(modemLine, ':');
+    if (value) { int stat = atoi(value + 1); if (stat >= 0 && stat <= 11) { if (lte) regLte = stat; else regCs = stat; } }
+  }
+  if (!strcmp_P(modemLine, PSTR("+CME ERROR: 10")) || strstr_P(modemLine, PSTR("not inserted"))) simCardState = 4;
+}
+void serviceSMS() {
+  while (simSerial.available()) {
+    char c = simSerial.read();
+    if (smsState == 2 && c == '>') {
+      simSerial.print(smsText); simSerial.write((byte)26);
+      smsState = 3; smsAt = millis(); modemLength = 0; continue;
+    }
+    if (c == '\r' || c == '\n') {
+      modemLine[modemLength] = '\0';
+      bool ok = !strcmp_P(modemLine, PSTR("OK"));
+      bool error = !strncmp_P(modemLine, PSTR("+CMS ERROR"), 10) ||
+          !strncmp_P(modemLine, PSTR("+CME ERROR"), 10) || !strcmp_P(modemLine, PSTR("ERROR"));
+      if (ok || error || !strncmp_P(modemLine, PSTR("+CPIN:"), 6) ||
+          !strncmp_P(modemLine, PSTR("+CSQ:"), 5) || !strncmp_P(modemLine, PSTR("+CREG:"), 6) ||
+          !strncmp_P(modemLine, PSTR("+CEREG:"), 7)) { modemSeen = true; lastModemAt = millis(); readModemStatus(); }
+      if (smsState >= 4) {
+        if (ok || error) finishHealthQuery();
+      } else if (smsState && error) {
+        Serial.print(F("@SMS ERROR ")); Serial.println(modemLine); smsState = 0;
+      } else if (smsState == 1 && ok) {
+        simSerial.print(F("AT+CMGS=\"")); simSerial.print(smsPhone); simSerial.print(F("\"\r"));
+        smsState = 2; smsAt = millis();
+      } else if (smsState == 3 && !strncmp_P(modemLine, PSTR("+CMGS:"), 6)) smsReference = true;
+      else if (smsState == 3 && smsReference && ok) {
+        Serial.println(F("@SMS SENT")); smsState = 0;
+      }
+      modemLength = 0;
+    } else if (modemLength < sizeof(modemLine) - 1) modemLine[modemLength++] = c;
+  }
+  unsigned long timeout = smsState == 3 ? 60000UL : (smsState == 2 ? 10000UL : 3000UL);
+  if (smsState && millis() - smsAt > timeout) {
+    if (smsState >= 4) { smsState = 0; modemLength = 0; if (smsPending) beginSmsTransmission(); }
+    else { simSerial.write((byte)27); smsState = 0; modemLength = 0; Serial.println(F("@SMS ERROR TIMEOUT")); }
+  }
+  if (!smsState && !editing && millis() - healthPollAt >= 30000UL) { healthPollAt = millis(); sendHealthQuery(4); }
+}
+void emitHealth() {
+  Serial.print(F("@HEALTH UPTIME ")); Serial.print(millis());
+  Serial.print(F(" SENSOR "));
+  if (!rtcReady) Serial.print(F("RTC_ERROR"));
+  else if (sensorState == 2) Serial.print(F("NO_ECHO"));
+  else if (sampleCount < 5) Serial.print(F("WARMUP"));
+  else Serial.print(F("OK"));
+  Serial.print(F(" AGE ")); if (hasValidSample) Serial.print(millis() - validSampleAt); else Serial.print(-1);
+  Serial.print(F(" CPIN ")); Serial.print(simCardState);
+  Serial.print(F(" CSQ ")); Serial.print(signalRssi);
+  Serial.print(F(" CREG ")); Serial.print((int)regCs);
+  Serial.print(F(" CEREG ")); Serial.print((int)regLte);
+  Serial.print(F(" MODEMAGE ")); if (modemSeen) Serial.print(millis() - lastModemAt); else Serial.print(-1);
+  Serial.print(F(" RTC ")); Serial.print(rtcReady ? 1 : 0);
+  Serial.print(F(" PAUSED ")); Serial.print(paused ? 1 : 0);
+  Serial.print(F(" REMAIN ")); Serial.println(pauseRemaining());
+  lastHealthAt = millis();
+}
+void emitSample() {
+  Serial.print(F("Thoi gian: ")); printTime(DateTime(lastSampleEpoch));
+  Serial.print(F(" | KC: ")); Serial.print(latestDistance, 2);
+  Serial.print(F(" cm | TB: ")); Serial.print(averageDistance, 2);
+  Serial.print(F(" cm | Cap: ")); Serial.println(alertLevel);
+  unpublished = false; lastReportAt = millis();
+}
+void takeSample() {
+  DateTime now(2000, 1, 1);
+  if (!rtcCheck(now, false)) return;
+  digitalWrite(TRIGGER_PIN, LOW); delayMicroseconds(2);
+  digitalWrite(TRIGGER_PIN, HIGH); delayMicroseconds(10); digitalWrite(TRIGGER_PIN, LOW);
+  unsigned long duration = pulseIn(ECHO_PIN, HIGH, 30000UL);
+  if (!duration) { sensorState = 2; unpublished = false; Serial.println(F("@SENSOR ERROR NO_ECHO")); return; }
+  float distance = duration * 0.034f / 2;
+  samples[sampleIndex] = distance; sampleIndex = (sampleIndex + 1) % 5;
+  if (sampleCount < 5) sampleCount++;
+  averageDistance = 0;
+  for (byte i = 0; i < sampleCount; i++) averageDistance += samples[i];
+  averageDistance /= sampleCount;
+  latestDistance = distance; lastSampleEpoch = now.unixtime();
+  validSampleAt = millis(); hasValidSample = true; unpublished = true; sensorState = 1;
+  if (now.day() != EEPROM.read(8) && now.hour() >= 20) {
+    minDistance = maxDistance = distance;
+    EEPROM.update(8, now.day()); extremaSavedAt = millis() - 60000UL;
+  }
+  if (distance < minDistance) minDistance = distance;
+  if (distance > maxDistance) maxDistance = distance;
+  if (millis() - extremaSavedAt >= 60000UL) {
+    EEPROM.put(0, minDistance); EEPROM.put(4, maxDistance); extremaSavedAt = millis();
+  }
+  byte previous = alertLevel;
+  if (sampleCount == 5) {
+    byte next = 0;
+    for (byte i = 0; i < config.count; i++) if (averageDistance * 100 <= config.levels[i].distanceCenti) next = i + 1;
+    if (next || averageDistance * 100 > (uint32_t)config.levels[0].distanceCenti + config.hysteresisCenti) alertLevel = next;
+  }
+  if (alertLevel != previous) emitSample();
+  lcd.setCursor(0, 0);
+  if (paused) lcd.print(F("Tam dung do     "));
+  else if (alertLevel) { lcd.print(F("CANH BAO CAP ")); lcd.print(alertLevel); lcd.print(F("  ")); }
+  else { lcd.print(F("Gio ")); if (now.hour() < 10) lcd.print('0'); lcd.print(now.hour()); lcd.print(':'); if (now.minute() < 10) lcd.print('0'); lcd.print(now.minute()); lcd.print(F("       ")); }
+  lcd.setCursor(0, 1); lcd.print(F("KC: ")); lcd.print(averageDistance, 2); lcd.print(F(" cm     "));
+  if (alertLevel > previous) startSMS(distance, now);
+}
+void setup() {
+  Serial.begin(9600); simSerial.begin(9600);
+  pinMode(TRIGGER_PIN, OUTPUT); pinMode(ECHO_PIN, INPUT);
+  pinMode(LED_PIN, OUTPUT); pinMode(SIREN_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW); digitalWrite(SIREN_PIN, LOW);
+  loadConfig(); Wire.begin(); Wire.setClock(100000UL); Wire.setWireTimeout(25000UL, true);
+  lcd.init(); lcd.backlight();
+  Wire.setWireTimeout(25000UL, true);
+  EEPROM.get(0, minDistance); EEPROM.get(4, maxDistance);
+  if (!isfinite(minDistance) || minDistance < 0 || minDistance > 1000 ||
+      !isfinite(maxDistance) || maxDistance < 0 || maxDistance > 1000) {
+    minDistance = 1000; maxDistance = 0;
+  }
+  Serial.println(F("@FW WATERCTRL 2"));
+  Serial.println(F("@RTC RECOVERY 1: DS1307, tu kiem tra 5 giay. Lenh Serial: RTC / I2C / YYYY-MM-DD HH:MM:SS."));
+  DateTime now(2000, 1, 1); rtcCheck(now, true);
+  lastSampleAt = millis() - config.intervalMs;
+  lastReportAt = millis() - config.reportIntervalMs;
+  healthPollAt = millis() - 25000UL;
+  emitHealth();
+}
+void loop() {
+  readCommands(); serviceSMS(); handleSignals(); serviceRTC();
+  if (paused && pauseForMs && millis() - pauseStarted >= pauseForMs) { resumeSampling(); printPauseState(0); }
+  if (editing && millis() - editAt > 15000UL) { editing = false; Serial.println(F("@CONFIG_EDIT EXPIRED")); }
+  if (rtcReady && !paused && millis() - lastSampleAt >= config.intervalMs) {
+    lastSampleAt = millis(); takeSample();
+  }
+  if (!paused && unpublished && millis() - lastReportAt >= config.reportIntervalMs) emitSample();
+  if (millis() - lastHealthAt >= 5000UL) emitHealth();
+}
+

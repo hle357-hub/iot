@@ -1,0 +1,21 @@
+#include <SoftwareSerial.h>
+
+// Nano nhận ở D11, truyền ở D10
+SoftwareSerial sim(11, 10);
+
+void setup() {
+  Serial.begin(9600);
+  // Truoc khi nap: gui AT+IPREX=9600 bang sketch cu dang chay.
+  sim.begin(115200);
+  Serial.println(F("Kiem tra hien thi: a A d D 0123456789"));
+  Serial.println(F("Kiểm tra tiếng Việt: Đã sẵn sàng nhận tin nhắn."));
+  Serial.println(F("Nhap AT de kiem tra SIM"));
+}
+
+void loop() {
+  while (Serial.available())
+    sim.write(Serial.read());
+
+  while (sim.available())
+    Serial.write(sim.read());
+}

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#155eef">
+  <meta name="description" content="Theo dõi kết quả đo mực nước từ Arduino: khoảng cách cảm biến, trung bình, xu hướng và cấp cảnh báo.">
+  <title>Thủy Trắc — Bảng quan trắc mực nước</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23155eef'/%3E%3Cpath d='M8 18q6-7 12 0t12 0M8 25q6-7 12 0t12 0' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar" aria-label="Điều hướng chính">
+    <a class="brand" href="#overview"><span class="brand-icon" data-icon="waves"></span><span>Thủy Trắc<small>WATER MONITORING</small></span></a>
+    <div class="nav-label">KHÔNG GIAN QUAN TRẮC</div>
+    <nav>
+      <a class="nav-item active" href="#overview" data-view="overview"><span data-icon="grid"></span>Tổng quan</a>
+      <a class="nav-item" href="#history" data-view="history"><span data-icon="history"></span>Lịch sử đo<span class="nav-count" id="nav-count">0</span></a>
+      <a class="nav-item" href="#alerts" data-view="alerts"><span data-icon="bell"></span>Cảnh báo</a>
+      <a class="nav-item" href="#device" data-view="device"><span data-icon="cpu"></span>Thiết bị</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="station"><span class="station-icon" data-icon="radio"></span><div>Trạm quan trắc 01<small>Arduino Nano · DS1307</small></div></div>
+      <div class="sidebar-note"><span class="tiny-dot"></span><span id="sidebar-source">Đang xem dữ liệu minh họa</span></div>
+      <div class="sidebar-footer">Đo lường rõ ràng.<br>Theo dõi chủ động.</div>
+    </div>
+  </aside>
+
+  <div class="app-shell">
+    <header class="topbar"><div class="breadcrumb">Không gian quan trắc<span>/</span><strong id="breadcrumb-view">Tổng quan</strong></div><div class="topbar-right"><span class="local-indicator"><i></i>Dữ liệu lưu trên trình duyệt</span><span class="avatar" aria-label="Trạm 01">01</span></div></header>
+    <main>
+      <div class="page-heading"><div><div class="eyebrow">TRẠM QUAN TRẮC 01</div><h1 id="page-title">Tổng quan mực nước</h1><p id="page-subtitle">Mọi kết quả đo, trong một góc nhìn.</p></div><div class="heading-actions"><button class="button secondary" id="import-button"><span data-icon="upload"></span>Nhập dữ liệu</button><button class="button primary" id="connect-button"><span data-icon="plug"></span>Kết nối thiết bị</button></div></div>
+
+      <div class="source-strip"><div><span class="source-badge" id="source-badge"><i></i>Dữ liệu minh họa</span><span class="source-explanation" id="source-explanation">Khám phá giao diện với dữ liệu mẫu. Chưa kết nối thiết bị.</span></div><button class="text-button" id="demo-button">Xem mẫu<span data-icon="arrow-right"></span></button></div>
+
+      <section id="overview-view" class="view">
+        <div class="metrics-grid">
+          <article class="metric-card"><div class="metric-top"><span>Khoảng cách hiện tại</span><span class="metric-icon" data-icon="ruler"></span></div><div class="metric-value"><span id="current-value">—</span><span class="unit">cm</span></div><div class="metric-bottom"><span class="mini-line" data-icon="activity"></span><span>Khoảng cách từ cảm biến tới mặt nước</span></div></article>
+          <article class="metric-card"><div class="metric-top"><span>Khoảng cách trung bình</span><span class="metric-icon" data-icon="layers"></span></div><div class="metric-value"><span id="average-value">—</span><span class="unit">cm</span></div><div class="metric-bottom"><span class="blue-dot"></span><span>Làm mượt từ 5 lần đo gần nhất</span></div></article>
+          <article class="metric-card alert-metric"><div class="metric-top"><span>Cấp cảnh báo hiện tại</span><span class="metric-icon" data-icon="shield"></span></div><div class="metric-value level-value"><span id="level-value">—</span><span class="level-pill" id="level-pill">Chưa có dữ liệu</span></div><div class="metric-bottom" id="level-caption">Theo trạng thái do thiết bị ghi nhận</div></article>
+        </div>
+
+        <div class="chart-layout">
+          <section class="panel chart-panel"><div class="panel-heading"><div><h2>Diễn biến khoảng cách</h2><p>Khoảng cách giảm đồng nghĩa mực nước dâng.</p></div><div class="segmented" aria-label="Phạm vi biểu đồ"><button data-range="30" class="selected" aria-pressed="true">30 mẫu</button><button data-range="100" aria-pressed="false">100 mẫu</button><button data-range="all" aria-pressed="false">Tất cả</button></div></div><div class="chart-legend"><span><i class="legend-line"></i>Đo thực tế</span><span><i class="legend-line average"></i>Trung bình</span><span class="chart-unit">Đơn vị: cm</span></div><div class="chart-container" id="chart-container"><svg id="trend-chart" viewBox="0 0 800 290" role="img" aria-label="Biểu đồ khoảng cách theo thời gian"></svg><div id="chart-tooltip" class="chart-tooltip" hidden></div></div><div class="chart-footnote"><span data-icon="info"></span><span>Các vạch 30, 20 và 10 cm là ngưỡng cảnh báo trong chương trình.</span></div></section>
+          <section class="panel threshold-panel"><div class="panel-heading"><div><h2>Ngưỡng cảnh báo</h2><p>Theo khoảng cách trung bình</p></div><span class="subtle-icon" data-icon="sliders"></span></div><div class="level-list"><div class="threshold-row" data-threshold="0"><span class="threshold-dot safe"></span><div><strong>Bình thường</strong><small>Còi và đèn tắt</small></div><span class="threshold-number">Cấp 0</span></div><div class="threshold-row" data-threshold="1"><span class="threshold-dot watch"></span><div><strong>Cảnh giác</strong><small>≤ 30 cm · Đèn nhấp nháy</small></div><span class="threshold-number">01</span></div><div class="threshold-row" data-threshold="2"><span class="threshold-dot danger"></span><div><strong>Nguy hiểm</strong><small>≤ 20 cm · Đèn và còi</small></div><span class="threshold-number">02</span></div><div class="threshold-row" data-threshold="3"><span class="threshold-dot critical"></span><div><strong>Rất nguy hiểm</strong><small>≤ 10 cm · Cảnh báo nhanh</small></div><span class="threshold-number">03</span></div></div><div class="threshold-note"><span data-icon="info"></span><p>Cảnh báo tắt khi khoảng cách vượt 35 cm. Trạng thái trong vùng chuyển tiếp được giữ theo code.</p></div></section>
+        </div>
+
+        <div class="bottom-layout"><section class="panel recent-panel"><div class="panel-heading"><div><h2>Kết quả ghi nhận gần nhất</h2><p id="recent-description">6 mẫu mới nhất trong dữ liệu đang xem</p></div><button class="text-button" data-goto="history">Xem tất cả<span data-icon="arrow-right"></span></button></div><div class="table-wrap"><table><thead><tr><th>THỜI GIAN RTC</th><th>KHOẢNG CÁCH</th><th>TRUNG BÌNH</th><th>TRẠNG THÁI</th></tr></thead><tbody id="recent-body"></tbody></table></div></section><section class="panel extrema-panel"><div class="panel-heading"><div><h2>Biên độ ghi nhận</h2><p>Trong dữ liệu đang xem</p></div></div><div class="extrema-entry"><span class="extrema-icon" data-icon="arrow-up"></span><div><span>Nước cao nhất</span><strong><span id="minimum-value">—</span><small>cm</small></strong><p>Khoảng cách nhỏ nhất</p></div></div><div class="extrema-entry"><span class="extrema-icon light" data-icon="arrow-down"></span><div><span>Nước thấp nhất</span><strong><span id="maximum-value">—</span><small>cm</small></strong><p>Khoảng cách lớn nhất</p></div></div><div class="extrema-footer"><span id="sample-count">0</span> mẫu đã ghi nhận</div></section></div>
+      </section>
+
+      <section id="history-view" class="view" hidden><div class="panel"><div class="panel-heading"><div><h2>Lịch sử kết quả đo</h2><p id="history-count">Toàn bộ bản ghi đang xem</p></div><button class="button secondary" id="export-button"><span data-icon="download"></span>Xuất CSV</button></div><div class="table-toolbar"><label class="search-field"><span data-icon="search"></span><input id="history-search" placeholder="Tìm theo ngày hoặc thời gian" aria-label="Tìm lịch sử"></label><select id="history-filter" aria-label="Lọc cấp cảnh báo"><option value="all">Tất cả trạng thái</option><option value="0">Bình thường</option><option value="1">Cấp 1 · Cảnh giác</option><option value="2">Cấp 2 · Nguy hiểm</option><option value="3">Cấp 3 · Rất nguy hiểm</option></select></div><div class="table-wrap"><table><thead><tr><th>THỜI GIAN RTC</th><th>KHOẢNG CÁCH</th><th>TRUNG BÌNH</th><th>CẤP CẢNH BÁO</th></tr></thead><tbody id="history-body"></tbody></table></div><div class="pagination"><span id="pagination-label"></span><div><button class="button secondary small" id="previous-page">Trước</button><button class="button secondary small" id="next-page">Sau</button></div></div></div></section>
+
+      <section id="alerts-view" class="view" hidden><div class="panel"><div class="panel-heading"><div><h2>Nhật ký thay đổi cảnh báo</h2><p>Ghi nhận khi cấp cảnh báo thay đổi trong chuỗi dữ liệu.</p></div><span class="tag">Theo kết quả thiết bị</span></div><div id="alert-timeline" class="alert-timeline"></div></div></section>
+
+      <section id="device-view" class="view" hidden><div class="device-layout"><section class="panel"><div class="panel-heading"><div><h2>Trạm quan trắc 01</h2><p>Thông tin từ chương trình Arduino hiện tại</p></div><span class="metric-icon" data-icon="cpu"></span></div><dl class="device-specs"><div><dt>Bộ điều khiển</dt><dd>Arduino Nano</dd></div><div><dt>Giao tiếp dữ liệu</dt><dd>USB Serial · 9600 baud</dd></div><div><dt>Đồng hồ thời gian thực</dt><dd>DS1307</dd></div><div><dt>Cảm biến siêu âm</dt><dd>TRIG D2 · ECHO D3</dd></div><div><dt>Tín hiệu cảnh báo</dt><dd>LED D6 · Còi D9</dd></div><div><dt>Màn hình</dt><dd>LCD I²C · 16 × 2 · 0x27</dd></div><div><dt>Lọc dữ liệu</dt><dd>Trung bình 5 mẫu</dd></div><div><dt>Trạng thái kết nối</dt><dd id="device-connection">Chưa kết nối USB</dd></div></dl></section><section class="panel connect-help"><span class="help-illustration" data-icon="plug"></span><h2>Đưa kết quả đo lên màn hình</h2><p>Cắm Nano vào máy tính, đóng Serial Monitor của Arduino, rồi chọn <strong>Kết nối thiết bị</strong>.</p><p>Trình duyệt Chrome hoặc Edge trên máy tính có thể đọc cổng USB khi bạn cho phép. Nếu trình duyệt không hỗ trợ, dùng <strong>Nhập dữ liệu</strong> để tải nhật ký hoặc dán kết quả Serial.</p><div class="help-note">Trang này chỉ đọc dữ liệu. Mã Arduino hiện tại chưa có kết nối mạng gửi dữ liệu lên web.</div><button class="button primary" id="device-connect-button"><span data-icon="plug"></span>Kết nối qua USB</button></section></div></section>
+
+      <footer class="main-footer"><span><span class="footer-mark" data-icon="waves"></span>Thủy Trắc<span class="footer-separator">·</span>Quan trắc mực nước</span><span id="last-update">Dữ liệu minh họa · Chưa kết nối thiết bị</span></footer>
+    </main>
+  </div>
+
+  <dialog id="import-dialog" aria-labelledby="import-title"><div class="dialog-heading"><div><div class="eyebrow">NGUỒN DỮ LIỆU</div><h2 id="import-title">Nhập kết quả ghi nhận</h2></div><button class="icon-button" id="close-dialog" aria-label="Đóng"><span data-icon="close"></span></button></div><p class="dialog-description">Tải nhật ký từ Serial Monitor hoặc dán các dòng kết quả đo. Dữ liệu được xử lý ngay trên trình duyệt của bạn.</p><label class="file-drop" for="import-file"><span data-icon="upload"></span><strong>Chọn tệp nhật ký</strong><span>TXT, LOG hoặc CSV xuất từ giao diện này</span><input type="file" id="import-file" accept=".txt,.log,.csv,text/plain,text/csv"></label><div class="or-divider"><span>hoặc dán nội dung</span></div><label class="textarea-label" for="log-input">Nhật ký Serial</label><textarea id="log-input" rows="5" placeholder="Thoi gian: 11:12 30/10/2026 | KC: 24.60 cm | TB: 25.30 cm | Cap: 1"></textarea><div class="import-feedback" id="import-feedback" aria-live="polite"></div><div class="dialog-actions"><button class="button secondary" id="cancel-import">Hủy</button><button class="button primary" id="apply-import">Hiển thị kết quả<span data-icon="arrow-right"></span></button></div></dialog>
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>

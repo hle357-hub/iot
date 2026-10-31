@@ -1,0 +1,1214 @@
+[
+  {
+    "added_include_path": "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino"
+  },
+  {
+    "added_include_path": "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs"
+  },
+  {
+    "compile": {
+      "source_path": "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": "Wire.h"
+  },
+  {
+    "added_include_path": "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src"
+  },
+  {
+    "compile": {
+      "source_path": "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": "LiquidCrystal_I2C.h"
+  },
+  {
+    "added_include_path": "d:\\li\\libraries\\LiquidCrystal_I2C"
+  },
+  {
+    "compile": {
+      "source_path": "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": "EEPROM.h"
+  },
+  {
+    "added_include_path": "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src"
+  },
+  {
+    "compile": {
+      "source_path": "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": "RTClib.h"
+  },
+  {
+    "added_include_path": "d:\\li\\libraries\\RTClib\\src"
+  },
+  {
+    "compile": {
+      "source_path": "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": "Adafruit_I2CDevice.h"
+  },
+  {
+    "added_include_path": "d:\\li\\libraries\\Adafruit_BusIO"
+  },
+  {
+    "compile": {
+      "source_path": "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "-Id:\\li\\libraries\\Adafruit_BusIO",
+        "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": "SoftwareSerial.h"
+  },
+  {
+    "added_include_path": "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src"
+  },
+  {
+    "compile": {
+      "source_path": "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "-Id:\\li\\libraries\\Adafruit_BusIO",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src",
+        "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\sketch\\original.ino.cpp.merged.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": ""
+  },
+  {
+    "compile": {
+      "source_path": "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src\\Wire.cpp",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\libraries\\Wire\\Wire.cpp.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "-Id:\\li\\libraries\\Adafruit_BusIO",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src",
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src\\Wire.cpp",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\libraries\\Wire\\Wire.cpp.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": ""
+  },
+  {
+    "compile": {
+      "source_path": "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src\\utility\\twi.c",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\libraries\\Wire\\utility\\twi.c.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "-Id:\\li\\libraries\\Adafruit_BusIO",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src",
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src\\utility\\twi.c",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\libraries\\Wire\\utility\\twi.c.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": ""
+  },
+  {
+    "compile": {
+      "source_path": "d:\\li\\libraries\\LiquidCrystal_I2C\\LiquidCrystal_I2C.cpp",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\libraries\\LiquidCrystal_I2C\\LiquidCrystal_I2C.cpp.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "-Id:\\li\\libraries\\Adafruit_BusIO",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src",
+        "d:\\li\\libraries\\LiquidCrystal_I2C\\LiquidCrystal_I2C.cpp",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\libraries\\LiquidCrystal_I2C\\LiquidCrystal_I2C.cpp.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": ""
+  },
+  {
+    "compile": {
+      "source_path": "d:\\li\\libraries\\RTClib\\src\\RTC_DS1307.cpp",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\libraries\\RTClib\\RTC_DS1307.cpp.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "-Id:\\li\\libraries\\Adafruit_BusIO",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src",
+        "d:\\li\\libraries\\RTClib\\src\\RTC_DS1307.cpp",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\libraries\\RTClib\\RTC_DS1307.cpp.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": ""
+  },
+  {
+    "compile": {
+      "source_path": "d:\\li\\libraries\\RTClib\\src\\RTC_DS3231.cpp",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\libraries\\RTClib\\RTC_DS3231.cpp.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "-Id:\\li\\libraries\\Adafruit_BusIO",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src",
+        "d:\\li\\libraries\\RTClib\\src\\RTC_DS3231.cpp",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\libraries\\RTClib\\RTC_DS3231.cpp.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": ""
+  },
+  {
+    "compile": {
+      "source_path": "d:\\li\\libraries\\RTClib\\src\\RTC_Micros.cpp",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\libraries\\RTClib\\RTC_Micros.cpp.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "-Id:\\li\\libraries\\Adafruit_BusIO",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src",
+        "d:\\li\\libraries\\RTClib\\src\\RTC_Micros.cpp",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\libraries\\RTClib\\RTC_Micros.cpp.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": ""
+  },
+  {
+    "compile": {
+      "source_path": "d:\\li\\libraries\\RTClib\\src\\RTC_Millis.cpp",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\libraries\\RTClib\\RTC_Millis.cpp.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "-Id:\\li\\libraries\\Adafruit_BusIO",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src",
+        "d:\\li\\libraries\\RTClib\\src\\RTC_Millis.cpp",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\libraries\\RTClib\\RTC_Millis.cpp.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": ""
+  },
+  {
+    "compile": {
+      "source_path": "d:\\li\\libraries\\RTClib\\src\\RTC_PCF8523.cpp",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\libraries\\RTClib\\RTC_PCF8523.cpp.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "-Id:\\li\\libraries\\Adafruit_BusIO",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src",
+        "d:\\li\\libraries\\RTClib\\src\\RTC_PCF8523.cpp",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\libraries\\RTClib\\RTC_PCF8523.cpp.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": ""
+  },
+  {
+    "compile": {
+      "source_path": "d:\\li\\libraries\\RTClib\\src\\RTC_PCF8563.cpp",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\libraries\\RTClib\\RTC_PCF8563.cpp.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "-Id:\\li\\libraries\\Adafruit_BusIO",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src",
+        "d:\\li\\libraries\\RTClib\\src\\RTC_PCF8563.cpp",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\libraries\\RTClib\\RTC_PCF8563.cpp.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": ""
+  },
+  {
+    "compile": {
+      "source_path": "d:\\li\\libraries\\RTClib\\src\\RTClib.cpp",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\libraries\\RTClib\\RTClib.cpp.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "-Id:\\li\\libraries\\Adafruit_BusIO",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src",
+        "d:\\li\\libraries\\RTClib\\src\\RTClib.cpp",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\libraries\\RTClib\\RTClib.cpp.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": ""
+  },
+  {
+    "compile": {
+      "source_path": "d:\\li\\libraries\\Adafruit_BusIO\\Adafruit_BusIO_Register.cpp",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\libraries\\Adafruit_BusIO\\Adafruit_BusIO_Register.cpp.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "-Id:\\li\\libraries\\Adafruit_BusIO",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src",
+        "d:\\li\\libraries\\Adafruit_BusIO\\Adafruit_BusIO_Register.cpp",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\libraries\\Adafruit_BusIO\\Adafruit_BusIO_Register.cpp.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": "SPI.h"
+  },
+  {
+    "added_include_path": "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SPI\\src"
+  },
+  {
+    "compile": {
+      "source_path": "d:\\li\\libraries\\Adafruit_BusIO\\Adafruit_BusIO_Register.cpp",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\libraries\\Adafruit_BusIO\\Adafruit_BusIO_Register.cpp.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "-Id:\\li\\libraries\\Adafruit_BusIO",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SPI\\src",
+        "d:\\li\\libraries\\Adafruit_BusIO\\Adafruit_BusIO_Register.cpp",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\libraries\\Adafruit_BusIO\\Adafruit_BusIO_Register.cpp.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": ""
+  },
+  {
+    "compile": {
+      "source_path": "d:\\li\\libraries\\Adafruit_BusIO\\Adafruit_GenericDevice.cpp",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\libraries\\Adafruit_BusIO\\Adafruit_GenericDevice.cpp.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "-Id:\\li\\libraries\\Adafruit_BusIO",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SPI\\src",
+        "d:\\li\\libraries\\Adafruit_BusIO\\Adafruit_GenericDevice.cpp",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\libraries\\Adafruit_BusIO\\Adafruit_GenericDevice.cpp.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": ""
+  },
+  {
+    "compile": {
+      "source_path": "d:\\li\\libraries\\Adafruit_BusIO\\Adafruit_I2CDevice.cpp",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\libraries\\Adafruit_BusIO\\Adafruit_I2CDevice.cpp.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "-Id:\\li\\libraries\\Adafruit_BusIO",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SPI\\src",
+        "d:\\li\\libraries\\Adafruit_BusIO\\Adafruit_I2CDevice.cpp",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\libraries\\Adafruit_BusIO\\Adafruit_I2CDevice.cpp.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": ""
+  },
+  {
+    "compile": {
+      "source_path": "d:\\li\\libraries\\Adafruit_BusIO\\Adafruit_SPIDevice.cpp",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\libraries\\Adafruit_BusIO\\Adafruit_SPIDevice.cpp.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "-Id:\\li\\libraries\\Adafruit_BusIO",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SPI\\src",
+        "d:\\li\\libraries\\Adafruit_BusIO\\Adafruit_SPIDevice.cpp",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\libraries\\Adafruit_BusIO\\Adafruit_SPIDevice.cpp.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": ""
+  },
+  {
+    "compile": {
+      "source_path": "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src\\SoftwareSerial.cpp",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\libraries\\SoftwareSerial\\SoftwareSerial.cpp.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "-Id:\\li\\libraries\\Adafruit_BusIO",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SPI\\src",
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src\\SoftwareSerial.cpp",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\libraries\\SoftwareSerial\\SoftwareSerial.cpp.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": ""
+  },
+  {
+    "compile": {
+      "source_path": "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SPI\\src\\SPI.cpp",
+      "depfile_path": "D:\\iot\\.checks\\build-original\\libraries\\SPI\\SPI.cpp.libsdetect.d"
+    },
+    "compile_task": {
+      "args": [
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-flto",
+        "-w",
+        "-x",
+        "c++",
+        "-E",
+        "-CC",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\cores\\arduino",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\variants\\eightanaloginputs",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\Wire\\src",
+        "-Id:\\li\\libraries\\LiquidCrystal_I2C",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\EEPROM\\src",
+        "-Id:\\li\\libraries\\RTClib\\src",
+        "-Id:\\li\\libraries\\Adafruit_BusIO",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SoftwareSerial\\src",
+        "-IC:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SPI\\src",
+        "C:\\Users\\LENOVO\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.8\\libraries\\SPI\\src\\SPI.cpp",
+        "-o",
+        "nul",
+        "-MMD",
+        "-MF",
+        "D:\\iot\\.checks\\build-original\\libraries\\SPI\\SPI.cpp.libsdetect.d"
+      ]
+    }
+  },
+  {
+    "missing_include_h": ""
+  }
+]

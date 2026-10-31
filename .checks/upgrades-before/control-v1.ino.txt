@@ -1,0 +1,417 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <EEPROM.h>
+#include <RTClib.h>
+#include <SoftwareSerial.h>
+#include <avr/pgmspace.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
+const byte TRIGGER_PIN = 2, ECHO_PIN = 3, LED_PIN = 6, SIREN_PIN = 9;
+const byte MAX_LEVELS = 6;
+struct __attribute__((packed)) AlertLevel { uint16_t distanceCenti; char name[24]; };
+struct __attribute__((packed)) ControlConfig {
+  uint32_t intervalMs;
+  uint16_t hysteresisCenti;
+  byte count, smsEnabled;
+  char phone[17];
+  char message[121];
+  AlertLevel levels[MAX_LEVELS];
+};
+ControlConfig config;
+RTC_DS1307 rtc;
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+SoftwareSerial simSerial(11, 10); // Nano RX <- SIM TXD; Nano TX -> SIM RXD.
+
+// Two independently validated EEPROM banks. The previous committed bank survives
+// an interrupted edit or a power loss before the final valid marker is written.
+const int BANK_START = 64, CONFIG_OFFSET = 10, BANK_SIZE = CONFIG_OFFSET + sizeof(ControlConfig);
+static_assert(BANK_START + 2 * BANK_SIZE <= 1024, "EEPROM configuration does not fit Nano");
+byte activeBank = 0, stageBank = 1;
+uint32_t activeSequence = 0;
+bool editing = false, paused = false, rtcReady = false;
+unsigned long editAt = 0, lastSampleAt = 0, lastBlinkAt = 0;
+float samples[5], averageDistance = 0;
+float minDistance = 1000, maxDistance = 0;
+unsigned long extremaSavedAt = 0;
+byte sampleIndex = 0, sampleCount = 0, alertLevel = 0;
+bool ledOn = false;
+char serialLine[160];
+byte serialLength = 0;
+bool serialOverflow = false;
+
+// SMS runs as a state machine so measurement scheduling and USB commands remain
+// available while waiting for the modem or mobile network.
+char smsText[161], smsPhone[17], modemLine[48];
+byte smsState = 0, modemLength = 0;
+bool smsReference = false;
+unsigned long smsAt = 0;
+
+int bankAddress(byte bank) { return BANK_START + bank * BANK_SIZE; }
+uint16_t crcConfig(const ControlConfig &value) {
+  uint16_t crc = 0xffff;
+  const byte *bytes = reinterpret_cast<const byte *>(&value);
+  for (uint16_t i = 0; i < sizeof(value); i++) {
+    crc ^= bytes[i];
+    for (byte bit = 0; bit < 8; bit++) crc = (crc >> 1) ^ ((crc & 1) ? 0xa001 : 0);
+  }
+  return crc;
+}
+bool validPhone(const char *phone) {
+  size_t length = strnlen(phone, 17);
+  if (length == 0) return true;
+  if (length >= 17) return false;
+  byte first = phone[0] == '+' ? 1 : 0;
+  if (length - first < 8 || length - first > 15) return false;
+  for (byte i = first; i < length; i++) if (phone[i] < '0' || phone[i] > '9') return false;
+  return true;
+}
+bool validMessage(const char *message) {
+  size_t length = strnlen(message, 121);
+  if (!length || length > 120) return false;
+  uint16_t expanded = 0;
+  const char *p = message;
+  while (*p) {
+    if (*p < 32 || *p > 126) return false;
+    if (!strncmp_P(p, PSTR("{cap}"), 5)) { expanded++; p += 5; }
+    else if (!strncmp_P(p, PSTR("{kc}"), 4)) { expanded += 6; p += 4; }
+    else if (!strncmp_P(p, PSTR("{tb}"), 4)) { expanded += 6; p += 4; }
+    else if (!strncmp_P(p, PSTR("{thoigian}"), 10)) { expanded += 19; p += 10; }
+    else { if (*p == '{' || *p == '}') return false; expanded++; p++; }
+  }
+  return expanded <= 160;
+}
+bool validConfig(const ControlConfig &value) {
+  if (value.intervalMs < 100 || value.intervalMs > 3600000UL ||
+      value.count < 1 || value.count > MAX_LEVELS || value.smsEnabled > 1 ||
+      value.hysteresisCenti > 10000 || !validPhone(value.phone) ||
+      (value.smsEnabled && !value.phone[0])) return false;
+  if (!validMessage(value.message)) return false;
+  for (byte i = 0; i < value.count; i++) {
+    const AlertLevel &level = value.levels[i];
+    if (level.distanceCenti < 10 || level.distanceCenti > 50000 ||
+        (i && level.distanceCenti >= value.levels[i - 1].distanceCenti)) return false;
+    size_t length = strnlen(level.name, sizeof(level.name));
+    if (!length || length >= sizeof(level.name)) return false;
+    for (byte j = 0; j < length; j++) if (static_cast<byte>(level.name[j]) < 32 || level.name[j] == '|') return false;
+  }
+  return true;
+}
+bool validBank(byte bank) {
+  int base = bankAddress(bank);
+  uint16_t magic, expected;
+  EEPROM.get(base, magic);
+  if (magic != 0x5754 || EEPROM.read(base + 2) != 1 || EEPROM.read(base + 3) != 0xa5) return false;
+  ControlConfig candidate;
+  EEPROM.get(base + CONFIG_OFFSET, candidate);
+  EEPROM.get(base + 8, expected);
+  return expected == crcConfig(candidate) && validConfig(candidate);
+}
+void defaultConfig() {
+  memset(&config, 0, sizeof(config));
+  config.intervalMs = 1000;
+  config.hysteresisCenti = 500;
+  config.count = 3;
+  config.levels[0].distanceCenti = 3000;
+  config.levels[1].distanceCenti = 2000;
+  config.levels[2].distanceCenti = 1000;
+  strcpy_P(config.levels[0].name, PSTR("Canh giac"));
+  strcpy_P(config.levels[1].name, PSTR("Nguy hiem"));
+  strcpy_P(config.levels[2].name, PSTR("Rat nguy hiem"));
+  strcpy_P(config.message, PSTR("CANH BAO LU cap {cap}. Khoang cach {kc} cm, trung binh {tb} cm luc {thoigian}."));
+}
+void loadConfig() {
+  bool first = validBank(0), second = validBank(1);
+  if (!first && !second) { defaultConfig(); return; }
+  uint32_t a = 0, b = 0;
+  if (first) EEPROM.get(bankAddress(0) + 4, a);
+  if (second) EEPROM.get(bankAddress(1) + 4, b);
+  activeBank = second && (!first || static_cast<int32_t>(b - a) > 0) ? 1 : 0;
+  activeSequence = activeBank ? b : a;
+  EEPROM.get(bankAddress(activeBank) + CONFIG_OFFSET, config);
+}
+void ack(uint16_t id, bool ok, const __FlashStringHelper *detail) {
+  Serial.print(F("@ACK ")); Serial.print(id); Serial.print(ok ? F(" OK") : F(" ERR"));
+  if (detail) { Serial.print(' '); Serial.print(detail); }
+  Serial.println();
+}
+void configPrefix(uint16_t id, const __FlashStringHelper *key) {
+  Serial.print(F("@CONFIG ")); Serial.print(id); Serial.print(' '); Serial.print(key);
+}
+void printConfig(uint16_t id) {
+  configPrefix(id, F("BEGIN")); Serial.println();
+  configPrefix(id, F("INTERVAL ")); Serial.println(config.intervalMs);
+  configPrefix(id, F("HYSTERESIS ")); Serial.println(config.hysteresisCenti);
+  configPrefix(id, F("SMS ")); Serial.println(config.smsEnabled);
+  configPrefix(id, F("PHONE ")); if (config.phone[0]) Serial.println(config.phone); else Serial.println('-');
+  configPrefix(id, F("MESSAGE ")); Serial.println(config.message);
+  configPrefix(id, F("PAUSED ")); Serial.println(paused ? 1 : 0);
+  configPrefix(id, F("LEVELS ")); Serial.println(config.count);
+  for (byte i = 0; i < config.count; i++) {
+    configPrefix(id, F("LEVEL ")); Serial.print(i + 1); Serial.print(' ');
+    Serial.print(config.levels[i].distanceCenti); Serial.print(' '); Serial.println(config.levels[i].name);
+  }
+  configPrefix(id, F("END")); Serial.println();
+}
+bool unsignedValue(const char *text, uint32_t &value) {
+  if (!text || !*text) return false;
+  value = 0;
+  while (*text) {
+    if (*text < '0' || *text > '9' || value > 3600000UL) return false;
+    value = value * 10 + (*text++ - '0');
+  }
+  return true;
+}
+void beginEdit() {
+  stageBank = 1 - activeBank;
+  int base = bankAddress(stageBank);
+  EEPROM.update(base + 3, 0);
+  EEPROM.put(base + CONFIG_OFFSET, config);
+  editing = true;
+  editAt = millis();
+}
+void processCommand(char *line) {
+  char *cursor = line + 1, *end;
+  unsigned long rawId = strtoul(cursor, &end, 10);
+  if (end == cursor || *end != ' ' || rawId == 0 || rawId > 65535) return;
+  uint16_t id = rawId;
+  char *command = end + 1;
+  char *argument = strchr(command, ' ');
+  if (argument) *argument++ = '\0';
+  if (!strcmp_P(command, PSTR("HELLO"))) { ack(id, true, F("HELLO 1")); return; }
+  if (!strcmp_P(command, PSTR("GET"))) { printConfig(id); ack(id, true, nullptr); return; }
+  if (!strcmp_P(command, PSTR("PAUSE"))) { paused = true; lcd.setCursor(0, 0); lcd.print(F("Tam dung do     ")); ack(id, true, F("PAUSED 1")); return; }
+  if (!strcmp_P(command, PSTR("RESUME"))) {
+    paused = false; sampleCount = sampleIndex = 0; lastSampleAt = millis() - config.intervalMs;
+    ack(id, true, F("PAUSED 0")); return;
+  }
+  if (!strcmp_P(command, PSTR("ABORT"))) { editing = false; ack(id, true, nullptr); return; }
+  if (!strcmp_P(command, PSTR("BEGIN"))) {
+    if (editing) { ack(id, false, F("BUSY")); return; }
+    beginEdit(); ack(id, true, nullptr); return;
+  }
+  if (!editing) { ack(id, false, F("BEGIN_REQUIRED")); return; }
+  editAt = millis();
+  int target = bankAddress(stageBank) + CONFIG_OFFSET;
+  uint32_t value = 0;
+  bool ok = false;
+  if (!strcmp_P(command, PSTR("INTERVAL")) && unsignedValue(argument, value) && value >= 100 && value <= 3600000UL) {
+    EEPROM.put(target + offsetof(ControlConfig, intervalMs), value); ok = true;
+  } else if (!strcmp_P(command, PSTR("HYSTERESIS")) && unsignedValue(argument, value) && value <= 10000) {
+    uint16_t small = value; EEPROM.put(target + offsetof(ControlConfig, hysteresisCenti), small); ok = true;
+  } else if (!strcmp_P(command, PSTR("SMS")) && argument && (argument[0] == '0' || argument[0] == '1') && !argument[1]) {
+    EEPROM.update(target + offsetof(ControlConfig, smsEnabled), argument[0] - '0'); ok = true;
+  } else if (!strcmp_P(command, PSTR("LEVELS")) && unsignedValue(argument, value) && value >= 1 && value <= MAX_LEVELS) {
+    EEPROM.update(target + offsetof(ControlConfig, count), value); ok = true;
+  } else if (!strcmp_P(command, PSTR("PHONE")) && argument) {
+    if (!strcmp(argument, "-")) *argument = '\0';
+    if (validPhone(argument)) {
+      for (byte i = 0; i <= strlen(argument); i++) EEPROM.update(target + offsetof(ControlConfig, phone) + i, argument[i]);
+      ok = true;
+    }
+  } else if (!strcmp_P(command, PSTR("MESSAGE")) && argument && strlen(argument) > 0 && strlen(argument) <= 120) {
+    ok = true;
+    for (byte i = 0; argument[i]; i++) if (argument[i] < 32 || argument[i] > 126) ok = false;
+    if (ok) for (byte i = 0; i <= strlen(argument); i++) EEPROM.update(target + offsetof(ControlConfig, message) + i, argument[i]);
+  } else if (!strcmp_P(command, PSTR("LEVEL")) && argument) {
+    char *distanceText = strchr(argument, ' ');
+    if (distanceText) {
+      *distanceText++ = '\0'; char *name = strchr(distanceText, ' ');
+      if (name) {
+        *name++ = '\0'; uint32_t index, distance;
+        if (unsignedValue(argument, index) && index >= 1 && index <= MAX_LEVELS &&
+            unsignedValue(distanceText, distance) && distance >= 10 && distance <= 50000 && strlen(name) > 0 && strlen(name) <= 23) {
+          ok = true;
+          for (byte j = 0; name[j]; j++) if (static_cast<byte>(name[j]) < 32 || name[j] == '|') ok = false;
+          if (ok) {
+            int offset = target + offsetof(ControlConfig, levels) + (index - 1) * sizeof(AlertLevel);
+            uint16_t small = distance; EEPROM.put(offset, small);
+            for (byte j = 0; j <= strlen(name); j++) EEPROM.update(offset + offsetof(AlertLevel, name) + j, name[j]);
+          }
+        }
+      }
+    }
+  } else if (!strcmp_P(command, PSTR("COMMIT"))) {
+    ControlConfig candidate;
+    EEPROM.get(target, candidate);
+    if (!validConfig(candidate)) { ack(id, false, F("INVALID_CONFIG")); return; }
+    int base = bankAddress(stageBank);
+    uint16_t magic = 0x5754, crc = crcConfig(candidate);
+    uint32_t sequence = activeSequence + 1;
+    EEPROM.put(base, magic); EEPROM.update(base + 2, 1);
+    EEPROM.put(base + 4, sequence); EEPROM.put(base + 8, crc);
+    EEPROM.update(base + 3, 0xa5); // Commit marker is written last.
+    config = candidate; activeBank = stageBank; activeSequence = sequence; editing = false;
+    sampleCount = sampleIndex = 0;
+    if (alertLevel > config.count) alertLevel = config.count;
+    lastSampleAt = millis() - config.intervalMs;
+    ack(id, true, nullptr); return;
+  }
+  ack(id, ok, ok ? nullptr : F("INVALID_VALUE"));
+}
+void processTime(char *line) {
+  if (strlen(line) != 19) { Serial.println(F("Nhap YYYY-MM-DD HH:MM:SS hoac lenh tu web.")); return; }
+  uint16_t parts[6] = {0}; byte field = 0;
+  for (byte i = 0; i < 19; i++) {
+    if (i == 4 || i == 7 || i == 10 || i == 13 || i == 16) {
+      char expected = i < 10 ? '-' : (i == 10 ? ' ' : ':');
+      if (line[i] != expected) return;
+      field++;
+    } else {
+      if (line[i] < '0' || line[i] > '9') return;
+      parts[field] = parts[field] * 10 + line[i] - '0';
+    }
+  }
+  if (!rtcReady || parts[0] < 2000 || parts[0] > 2099 || parts[1] < 1 || parts[1] > 12 ||
+      parts[2] < 1 || parts[2] > 31 || parts[3] > 23 || parts[4] > 59 || parts[5] > 59) return;
+  DateTime updated(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5]);
+  if (updated.isValid()) { rtc.adjust(updated); Serial.println(F("RTC da cap nhat.")); }
+}
+void readCommands() {
+  while (Serial.available()) {
+    char c = Serial.read();
+    if (c == '\n' || c == '\r') {
+      if (serialLength && !serialOverflow) {
+        serialLine[serialLength] = '\0';
+        if (serialLine[0] == '!') processCommand(serialLine); else processTime(serialLine);
+      } else if (serialOverflow) Serial.println(F("@ERROR LINE_TOO_LONG"));
+      serialLength = 0; serialOverflow = false;
+    } else if (serialLength < sizeof(serialLine) - 1) serialLine[serialLength++] = c;
+    else serialOverflow = true;
+  }
+}
+void handleSignals() {
+  if (!alertLevel) { digitalWrite(LED_PIN, LOW); digitalWrite(SIREN_PIN, LOW); ledOn = false; return; }
+  unsigned long interval = alertLevel >= 3 ? 100 : 200;
+  if (millis() - lastBlinkAt >= interval) {
+    lastBlinkAt = millis(); ledOn = !ledOn;
+    digitalWrite(LED_PIN, ledOn); digitalWrite(SIREN_PIN, alertLevel >= 2 ? ledOn : LOW);
+  }
+}
+void printTime(DateTime now) {
+  if (now.hour() < 10) Serial.print('0'); Serial.print(now.hour()); Serial.print(':');
+  if (now.minute() < 10) Serial.print('0'); Serial.print(now.minute()); Serial.print(':');
+  if (now.second() < 10) Serial.print('0'); Serial.print(now.second()); Serial.print(' ');
+  Serial.print(now.day()); Serial.print('/'); Serial.print(now.month()); Serial.print('/'); Serial.print(now.year());
+}
+bool appendText(const char *text, byte &length) {
+  while (*text) { if (length >= 160) return false; smsText[length++] = *text++; }
+  smsText[length] = '\0'; return true;
+}
+bool buildMessage(float distance, DateTime now) {
+  byte length = 0;
+  const char *p = config.message;
+  char value[24]; smsText[0] = '\0';
+  while (*p) {
+    if (!strncmp_P(p, PSTR("{cap}"), 5)) { utoa(alertLevel, value, 10); p += 5; }
+    else if (!strncmp_P(p, PSTR("{kc}"), 4)) { dtostrf(distance, 1, 2, value); p += 4; }
+    else if (!strncmp_P(p, PSTR("{tb}"), 4)) { dtostrf(averageDistance, 1, 2, value); p += 4; }
+    else if (!strncmp_P(p, PSTR("{thoigian}"), 10)) {
+      snprintf_P(value, sizeof(value), PSTR("%02u:%02u:%02u %02u/%02u/%u"),
+        (unsigned)now.hour(), (unsigned)now.minute(), (unsigned)now.second(),
+        (unsigned)now.day(), (unsigned)now.month(), (unsigned)now.year()); p += 10;
+    } else { value[0] = *p++; value[1] = '\0'; }
+    if (!appendText(value, length)) return false;
+  }
+  return true;
+}
+void startSMS(float distance, DateTime now) {
+  if (!config.smsEnabled || !config.phone[0] || editing) return;
+  if (smsState) { Serial.println(F("@SMS ERROR MODEM_BUSY")); return; }
+  if (!buildMessage(distance, now)) { Serial.println(F("@SMS ERROR MESSAGE_TOO_LONG")); return; }
+  strcpy(smsPhone, config.phone);
+  while (simSerial.available()) simSerial.read();
+  modemLength = 0; smsReference = false; smsState = 1; smsAt = millis();
+  simSerial.print(F("AT+CMGF=1\r")); Serial.println(F("@SMS SENDING"));
+}
+void serviceSMS() {
+  while (simSerial.available()) {
+    char c = simSerial.read();
+    if (smsState == 2 && c == '>') {
+      simSerial.print(smsText); simSerial.write((byte)26);
+      smsState = 3; smsAt = millis(); modemLength = 0; continue;
+    }
+    if (c == '\r' || c == '\n') {
+      modemLine[modemLength] = '\0';
+      if (smsState && (!strncmp_P(modemLine, PSTR("+CMS ERROR"), 10) ||
+          !strncmp_P(modemLine, PSTR("+CME ERROR"), 10) || !strcmp_P(modemLine, PSTR("ERROR")))) {
+        Serial.print(F("@SMS ERROR ")); Serial.println(modemLine); smsState = 0;
+      } else if (smsState == 1 && !strcmp_P(modemLine, PSTR("OK"))) {
+        simSerial.print(F("AT+CMGS=\"")); simSerial.print(smsPhone); simSerial.print(F("\"\r"));
+        smsState = 2; smsAt = millis();
+      } else if (smsState == 3 && !strncmp_P(modemLine, PSTR("+CMGS:"), 6)) smsReference = true;
+      else if (smsState == 3 && smsReference && !strcmp_P(modemLine, PSTR("OK"))) {
+        Serial.println(F("@SMS SENT")); smsState = 0;
+      }
+      modemLength = 0;
+    } else if (modemLength < sizeof(modemLine) - 1) modemLine[modemLength++] = c;
+  }
+  unsigned long timeout = smsState == 3 ? 60000UL : (smsState == 2 ? 10000UL : 3000UL);
+  if (smsState && millis() - smsAt > timeout) {
+    simSerial.write((byte)27); smsState = 0; modemLength = 0; Serial.println(F("@SMS ERROR TIMEOUT"));
+  }
+}
+void takeSample() {
+  digitalWrite(TRIGGER_PIN, LOW); delayMicroseconds(2);
+  digitalWrite(TRIGGER_PIN, HIGH); delayMicroseconds(10); digitalWrite(TRIGGER_PIN, LOW);
+  unsigned long duration = pulseIn(ECHO_PIN, HIGH, 30000UL);
+  if (!duration) { Serial.println(F("@SENSOR ERROR NO_ECHO")); return; }
+  float distance = duration * 0.034f / 2;
+  samples[sampleIndex] = distance; sampleIndex = (sampleIndex + 1) % 5;
+  if (sampleCount < 5) sampleCount++;
+  averageDistance = 0;
+  for (byte i = 0; i < sampleCount; i++) averageDistance += samples[i];
+  averageDistance /= sampleCount;
+  DateTime now = rtc.now();
+  if (now.day() != EEPROM.read(8) && now.hour() >= 20) {
+    minDistance = maxDistance = distance;
+    EEPROM.update(8, now.day()); extremaSavedAt = millis() - 60000UL;
+  }
+  if (distance < minDistance) minDistance = distance;
+  if (distance > maxDistance) maxDistance = distance;
+  if (millis() - extremaSavedAt >= 60000UL) {
+    EEPROM.put(0, minDistance); EEPROM.put(4, maxDistance); extremaSavedAt = millis();
+  }
+  byte previous = alertLevel;
+  if (sampleCount == 5) {
+    byte next = 0;
+    for (byte i = 0; i < config.count; i++) if (averageDistance * 100 <= config.levels[i].distanceCenti) next = i + 1;
+    if (next || averageDistance * 100 > (uint32_t)config.levels[0].distanceCenti + config.hysteresisCenti) alertLevel = next;
+  }
+  Serial.print(F("Thoi gian: ")); printTime(now);
+  Serial.print(F(" | KC: ")); Serial.print(distance, 2);
+  Serial.print(F(" cm | TB: ")); Serial.print(averageDistance, 2);
+  Serial.print(F(" cm | Cap: ")); Serial.println(alertLevel);
+  lcd.setCursor(0, 0);
+  if (paused) lcd.print(F("Tam dung do     "));
+  else if (alertLevel) { lcd.print(F("CANH BAO CAP ")); lcd.print(alertLevel); lcd.print(F("  ")); }
+  else { lcd.print(F("Gio ")); if (now.hour() < 10) lcd.print('0'); lcd.print(now.hour()); lcd.print(':'); if (now.minute() < 10) lcd.print('0'); lcd.print(now.minute()); lcd.print(F("       ")); }
+  lcd.setCursor(0, 1); lcd.print(F("KC: ")); lcd.print(averageDistance, 2); lcd.print(F(" cm     "));
+  if (alertLevel > previous) startSMS(distance, now);
+}
+void setup() {
+  Serial.begin(9600); simSerial.begin(9600);
+  pinMode(TRIGGER_PIN, OUTPUT); pinMode(ECHO_PIN, INPUT);
+  pinMode(LED_PIN, OUTPUT); pinMode(SIREN_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW); digitalWrite(SIREN_PIN, LOW);
+  loadConfig(); lcd.init(); lcd.backlight();
+  EEPROM.get(0, minDistance); EEPROM.get(4, maxDistance);
+  if (!isfinite(minDistance) || minDistance < 0 || minDistance > 1000 ||
+      !isfinite(maxDistance) || maxDistance < 0 || maxDistance > 1000) {
+    minDistance = 1000; maxDistance = 0;
+  }
+  rtcReady = rtc.begin();
+  if (rtcReady && !rtc.isrunning()) rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  Serial.println(F("@FW WATERCTRL 1"));
+  if (!rtcReady) Serial.println(F("@SENSOR ERROR RTC_NOT_FOUND"));
+  lastSampleAt = millis() - config.intervalMs;
+}
+void loop() {
+  readCommands(); serviceSMS(); handleSignals();
+  if (editing && millis() - editAt > 15000UL) { editing = false; Serial.println(F("@CONFIG_EDIT EXPIRED")); }
+  if (rtcReady && !paused && millis() - lastSampleAt >= config.intervalMs) {
+    lastSampleAt = millis(); takeSample();
+  }
+}
